@@ -11,65 +11,7 @@ c.fillRect(0, 0, canvas.width, canvas.height)
 
 const gravidade = 0.7
 
-class Sprite {
-    constructor({position, velocidade, color = 'red', offset}) {
-        this.position = position
-        this.velocidade = velocidade
-        this.width = 50
-        this.height = 150
-        this.lastKey
-        this.caixaAtaque = {
-            position: {
-                x: this.position.x,
-                y: this.position.y
-            } ,
-            offset,
-            width: 100,
-            height: 50
-        }
-        this.color = color
-        this.isAtacando
-    }
-
-    draw() {
-        c.fillStyle = this.color
-        c.fillRect(this.position.x, this.position.y, this.width, this.height)
-
-        //ataque
-        if(this.isAtacando) {
-            c.fillStyle = 'green'
-            c.fillRect(
-                this.caixaAtaque.position.x,
-                this.caixaAtaque.position.y,
-                this.caixaAtaque.width,
-                this.caixaAtaque.height)
-        }
-    }
-
-    update() {
-        this.draw()
-        this.caixaAtaque.position.x = this.position.x + this.caixaAtaque.offset.x
-        this.caixaAtaque.position.y = this.position.y
-
-        this.position.x += this.velocidade.x
-        this.position.y += this.velocidade.y
-        this.velocidade.y += gravidade
-        if (this.position.y + this.height + this.velocidade.y >= canvas.height) {
-            this.velocidade.y = 0   
-        } else
-        this.velocidade.y += gravidade
-
-    }
-
-    ataque(){
-        this.isAtacando = true
-        setTimeout(() => {
-            this.isAtacando = false
-        }, 100)
-    }
-}
-
-const player = new Sprite({
+const player = new Lutador({
     position: {
         x: 0,
         y: 0
@@ -84,8 +26,7 @@ const player = new Sprite({
     }
 })
 
-
-const inimigo = new Sprite({
+const inimigo = new Lutador({
     position: {
         x: 400,
         y: 100
@@ -134,6 +75,34 @@ function colisãoRetangulo({ retangulo1, retangulo2 }) {
     )
 }
 
+function ganhador({ player, inimigo, timerId}) {
+    clearTimeout(timerId)
+    document.querySelector('#textoDisplay').style.display = 'flex'
+    if(player.vida === inimigo.vida) {
+        document.querySelector('#textoDisplay').innerHTML = 'Empate'
+    } else if (player.vida > inimigo.vida) {
+        document.querySelector('#textoDisplay').innerHTML = 'Player 1 Venceu'
+    } else if (inimigo.vida > player.vida) {
+        document.querySelector('#textoDisplay').innerHTML = 'Player 2 Venceu'
+    }
+}
+
+let timer = 60
+let timerId 
+function contagemRegressiva() {
+    if(timer > 0) {
+        timerId = setTimeout(contagemRegressiva, 1000)
+        timer--
+        document.querySelector('#timer').innerHTML = timer
+    }
+
+    if(timer === 0) {
+       ganhador({player, inimigo, timerId}) 
+    }
+}
+
+contagemRegressiva()
+
 function animacao() {
     window.requestAnimationFrame(animacao)
     c.fillStyle = 'black'
@@ -168,7 +137,8 @@ function animacao() {
         && player.isAtacando
     ) {
         player.isAtacando = false
-        console.log('go')
+        inimigo.vida -= 20
+        document.querySelector('#inimigoVida').style.width = inimigo.vida + '%'
     }
 
      if(
@@ -179,9 +149,14 @@ function animacao() {
         && inimigo.isAtacando
     ) {
         inimigo.isAtacando = false
-        console.log('ataque inimigo')
+        player.vida -= 20
+        document.querySelector('#playerVida').style.width = player.vida + '%'
     }
 
+    //fim de jogo
+    if(inimigo.vida <= 0 || player.vida <= 0) {
+        ganhador({player, inimigo, timerId})
+    } 
 }
 
 animacao()
@@ -198,13 +173,13 @@ window.addEventListener('keydown', (event) => {
             break
         case 'w':
             player.velocidade.y = -20
-            somPulo.currentTime = 0
             somPulo.play()
+            somPulo.currentTime = 0
             break
         case ' ':
             player.ataque()
-            somAtaque.currentTime = 0
             somAtaque.play()
+            somAtaque.currentTime = 0
             break
 
         case 'ArrowRight':
@@ -216,14 +191,14 @@ window.addEventListener('keydown', (event) => {
             inimigo.lastKey = 'ArrowLeft'
             break
         case 'ArrowUp':
-            somPulo.currentTime = 0
             somPulo.play()
+            somPulo.currentTime = 0
             inimigo.velocidade.y = -20
             break
         case 'Shift':
-            inimigo.isAtacando = true
-            somAtaque.currentTime = 0
+            inimigo.ataque()
             somAtaque.play()
+            somAtaque.currentTime = 0
             break
         
 
