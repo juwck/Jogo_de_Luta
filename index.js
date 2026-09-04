@@ -35,6 +35,31 @@ const player = new Lutador({
     offset:{
         x: 215,
         y: 157
+    },
+
+    //?
+    sprites: {
+        idle: {
+            imageSrc: './img/player/Idle.png',
+            framesMax: 8,
+            image: new Image()
+        },
+        andar: {
+            imageSrc: './img/player/Andar.png',
+            framesMax: 8
+        },
+        pular: {
+            imageSrc: './img/player/Pulando.png',
+            framesMax: 2
+        },
+        cair: {
+            imageSrc: './img/player/Caindo.png',
+            framesMax: 2
+        },
+        atacar1: {
+            imageSrc: './img/player/ataque.png',
+            framesMax: 6
+        },
     }
 })
 
@@ -56,9 +81,6 @@ const inimigo = new Lutador({
         y: 180
     }
 })
-
-
-console.log(player)
 
 const keys = {
     a: {
@@ -95,11 +117,22 @@ function animacao() {
 
     inimigo.velocidade.x = 0
 
-    // Movimentação do player
+    //* Movimentação do player
     if (keys.a.pressed && player.lastKey === 'a') {
         player.velocidade.x = -5
+        player.trocaSprite('andar')
     } else if (keys.d.pressed && player.lastKey === 'd') {
         player.velocidade.x = 5
+        player.trocaSprite('andar')
+    } else {
+        player.trocaSprite('idle')
+    }
+
+    //pulo
+    if (player.velocidade.y < 0) {
+       player.trocaSprite('pular')
+    } else if (player.velocidade.y > 0 ) {
+        player.trocaSprite('cair')
     }
 
     // Movimentação do inimigo
