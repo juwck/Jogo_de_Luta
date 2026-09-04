@@ -94,6 +94,12 @@ class Lutador extends Sprite{
         this.framesPassados = 0
         this.framePosição = 5
         this.sprites = sprites
+
+        for (const Sprite in this.sprites) {
+            sprites [Sprite].image = new Image()
+            sprites [Sprite].image.src = sprites[Sprite].imageSrc
+        }
+
     }
 
     update() {
@@ -104,18 +110,66 @@ class Lutador extends Sprite{
 
         this.position.x += this.velocidade.x
         this.position.y += this.velocidade.y
-        this.velocidade.y += gravidade
+
+        //gravidade
         if (this.position.y + this.height + this.velocidade.y >= canvas.height - 80) {
             this.velocidade.y = 0   
-        } else
-        this.velocidade.y += gravidade
+            this.position.y = 465
+        } else this.velocidade.y += gravidade
 
     }
 
     ataque(){
+        this.trocaSprite('atacar1')
         this.isAtacando = true
         setTimeout(() => {
             this.isAtacando = false
         }, 100)
+    }
+
+    trocaSprite(Sprite) {
+        if (this.image === this.sprites.atacar1.image) return
+        
+        switch (Sprite) {
+            case 'idle':
+                if(this.image !== this.sprites.idle.image) {
+                    this.image = this.sprites.idle.image
+                    this.framesMax = this.sprites.idle.framesMax
+                    this.frameAtual = 0
+                }
+                break;
+
+            case 'andar':
+                if (this.image !== this.sprites.andar.image) {
+                    this.image = this.sprites.andar.image
+                    this.framesMax = this.sprites.andar.framesMax
+                    this.frameAtual = 0
+                }
+                break;
+
+            case 'pular':
+                if(this.image !== this.sprites.pular.image) {
+                    this.image = this.sprites.pular.image
+                    this.framesMax = this.sprites.pular.framesMax
+                    this.frameAtual = 0
+                }
+                break;
+
+            case 'cair':
+                if(this.image !== this.sprites.cair.image) {
+                    this.image = this.sprites.cair.image
+                    this.framesMax = this.sprites.cair.framesMax
+                    this.frameAtual = 0
+                }
+                break;
+
+            case 'atacar1':
+                if(this.image !== this.sprites.atacar1.image) {
+                    this.image = this.sprites.atacar1.image
+                    this.framesMax = this.sprites.atacar1.framesMax
+                    this.frameAtual = 0
+                }
+                break;
+        }
     }
 }
