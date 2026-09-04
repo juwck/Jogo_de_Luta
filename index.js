@@ -57,7 +57,7 @@ const player = new Lutador({
             framesMax: 2
         },
         atacar1: {
-            imageSrc: './img/player/ataque.png',
+            imageSrc: './img/player/ataque.player.png',
             framesMax: 6
         },
     }
