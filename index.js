@@ -236,7 +236,9 @@ function animacao() {
         inimigo.serAtacado()
         player.isAtacando = false
 
-        document.querySelector('#inimigoVida').style.width = inimigo.vida + '%'
+        gsap.to('#inimigoVida', {
+            width: inimigo.vida + '%'
+        })
     }
 
     //if player errar o ataque
@@ -255,7 +257,10 @@ function animacao() {
     ) {
         player.serAtacado()
         inimigo.isAtacando = false
-        document.querySelector('#playerVida').style.width = player.vida + '%'
+
+        gsap.to('#playerVida', {
+            width: player.vida + '%'
+        })
     }
 
     if (inimigo.isAtacando && inimigo.frameAtual === 4) {
