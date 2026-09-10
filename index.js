@@ -13,8 +13,8 @@ const gravidade = 0.7
 
 const background = new Sprite({
     position: {
-        x:0,
-        y:0
+        x: 0,
+        y: 0
     },
     imageSrc: './img/background.png',
     escala: 1.25
@@ -32,12 +32,11 @@ const player = new Lutador({
     imageSrc: './img/player/Idle.png',
     framesMax: 8,
     escala: 2.5,
-    offset:{
+    offset: {
         x: 215,
         y: 157
     },
 
-    //?
     sprites: {
         idle: {
             imageSrc: './img/player/Idle.png',
@@ -60,6 +59,22 @@ const player = new Lutador({
             imageSrc: './img/player/ataque.player.png',
             framesMax: 6
         },
+        serAtacado: {
+            imageSrc: './img/player/Atacado.png',
+            framesMax: 4
+        },
+        morte: {
+            imageSrc: './img/player/morte.player.png',
+            framesMax: 6
+        },
+    },
+    caixaAtaque: {
+        offset: {
+            x: 100,
+            y: 50
+        },
+        width: 160,
+        height: 50
     }
 })
 
@@ -73,12 +88,52 @@ const inimigo = new Lutador({
         y: 0
     },
     color: 'blue',
-    imageSrc:'./img/inimigo/Idle.inimigo.png',
-    framesMax: 4,
+    imageSrc: './img/inimigo/Idle.png',
+    framesMax: 8,
     escala: 2.5,
-    offset:{
+    offset: {
         x: 215,
-        y: 180
+        y: 157
+    },
+
+    sprites: {
+        idle: {
+            imageSrc: './img/inimigo/Idle.png',
+            framesMax: 8,
+            image: new Image()
+        },
+        andar: {
+            imageSrc: './img/inimigo/Andar.inimigo.png',
+            framesMax: 8
+        },
+        pular: {
+            imageSrc: './img/inimigo/Pulando.png',
+            framesMax: 2
+        },
+        cair: {
+            imageSrc: './img/inimigo/Caindo.png',
+            framesMax: 2
+        },
+        atacar1: {
+            imageSrc: './img/inimigo/ataque.player.png',
+            framesMax: 6
+        },
+        serAtacado: {
+            imageSrc: './img/inimigo/Atacado.png',
+            framesMax: 4
+        },
+        morte: {
+            imageSrc: './img/inimigo/morte.player.png',
+            framesMax: 6
+        },
+    },
+    caixaAtaque: {
+        offset: {
+            x: -200,
+            y: 50
+        },
+        width: 160,
+        height: 50
     }
 })
 
@@ -109,7 +164,24 @@ function animacao() {
     window.requestAnimationFrame(animacao)
     c.fillStyle = 'black'
     c.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Ajustar background ao tamanho do canvas
+    if (background.image.complete) {
+        const escalaX = canvas.width / background.image.width
+        const escalaY = canvas.height / background.image.height
+
+        background.escala = Math.max(escalaX, escalaY)
+
+        background.position.x =
+            (canvas.width - background.image.width * background.escala) / 2
+
+        background.position.y =
+            (canvas.height - background.image.height * background.escala) / 2
+    }
+
     background.update()
+    c.fillStyle = 'rgba(255, 255, 255, 0.1)'
+    c.fillRect(0, 0, canvas.width, canvas.height)
     player.update()
     inimigo.update()
 
@@ -117,7 +189,7 @@ function animacao() {
 
     inimigo.velocidade.x = 0
 
-    //* Movimentação do player
+    // Movimentação do player
     if (keys.a.pressed && player.lastKey === 'a') {
         player.velocidade.x = -5
         player.trocaSprite('andar')
@@ -127,97 +199,126 @@ function animacao() {
     } else {
         player.trocaSprite('idle')
     }
-
     //pulo
     if (player.velocidade.y < 0) {
-       player.trocaSprite('pular')
-    } else if (player.velocidade.y > 0 ) {
+        player.trocaSprite('pular')
+    } else if (player.velocidade.y > 0) {
         player.trocaSprite('cair')
     }
 
     // Movimentação do inimigo
     if (keys.ArrowLeft.pressed && inimigo.lastKey === 'ArrowLeft') {
         inimigo.velocidade.x = -5
+        inimigo.trocaSprite('andar')
     } else if (keys.ArrowRight.pressed && inimigo.lastKey === 'ArrowRight') {
         inimigo.velocidade.x = 5
+        inimigo.trocaSprite('andar')
+    } else {
+        inimigo.trocaSprite('idle')
+    }
+    //pulo
+    if (inimigo.velocidade.y < 0) {
+        inimigo.trocaSprite('pular')
+    } else if (inimigo.velocidade.y > 0) {
+        inimigo.trocaSprite('cair')
     }
 
+
     //detectar colisão
-    if(
+    if (
         colisãoRetangulo({
-            retangulo1: player, 
+            retangulo1: player,
             retangulo2: inimigo
-        })
-        && player.isAtacando
+        }) &&
+        player.isAtacando &&
+        player.frameAtual === 4
     ) {
+        inimigo.serAtacado()
         player.isAtacando = false
-        inimigo.vida -= 20
+
         document.querySelector('#inimigoVida').style.width = inimigo.vida + '%'
     }
 
-     if(
+    //if player errar o ataque
+    if (player.isAtacando && player.frameAtual === 4) {
+        player.isAtacando = false
+    }
+
+
+    if (
         colisãoRetangulo({
-            retangulo1: inimigo, 
+            retangulo1: inimigo,
             retangulo2: player
         })
-        && inimigo.isAtacando
+        && inimigo.isAtacando &&
+        inimigo.frameAtual === 4
     ) {
+        player.serAtacado()
         inimigo.isAtacando = false
-        player.vida -= 20
         document.querySelector('#playerVida').style.width = player.vida + '%'
     }
 
+    if (inimigo.isAtacando && inimigo.frameAtual === 4) {
+        inimigo.isAtacando = false
+    }
+
     //fim de jogo
-    if(inimigo.vida <= 0 || player.vida <= 0) {
-        ganhador({player, inimigo, timerId})
-    } 
+    if (inimigo.vida <= 0 || player.vida <= 0) {
+        ganhador({ player, inimigo, timerId })
+    }
 }
 
 animacao()
 
 window.addEventListener('keydown', (event) => {
-    switch (event.key) {
-        case 'd':
-            keys.d.pressed = true
-            player.lastKey = 'd'
-            break
-         case 'a':
-            keys.a.pressed = true
-            player.lastKey = 'a'
-            break
-        case 'w':
-            player.velocidade.y = -20
-            somPulo.play()
-            somPulo.currentTime = 0
-            break
-        case ' ':
-            player.ataque()
-            somAtaque.play()
-            somAtaque.currentTime = 0
-            break
-
-        case 'ArrowRight':
-            keys.ArrowRight.pressed = true
-            inimigo.lastKey = 'ArrowRight'
-            break
-         case 'ArrowLeft':
-            keys.ArrowLeft.pressed = true
-            inimigo.lastKey = 'ArrowLeft'
-            break
-        case 'ArrowUp':
-            somPulo.play()
-            somPulo.currentTime = 0
-            inimigo.velocidade.y = -20
-            break
-        case 'Shift':
-            inimigo.ataque()
-            somAtaque.play()
-            somAtaque.currentTime = 0
-            break
-        
-
-
+    if (!player.morto) {
+        switch (event.key) {
+            //player1
+            case 'd':
+                keys.d.pressed = true
+                player.lastKey = 'd'
+                break
+            case 'a':
+                keys.a.pressed = true
+                player.lastKey = 'a'
+                break
+            case 'w':
+                player.velocidade.y = -20
+                somPulo.play()
+                somPulo.currentTime = 0
+                break
+            case ' ':
+                player.ataque()
+                somAtaque.play()
+                somAtaque.currentTime = 0
+                break
+        }
     }
+
+    if (!inimigo.morto) {
+        switch (event.key) {
+            //player2
+            case 'ArrowRight':
+                keys.ArrowRight.pressed = true
+                inimigo.lastKey = 'ArrowRight'
+                break
+            case 'ArrowLeft':
+                keys.ArrowLeft.pressed = true
+                inimigo.lastKey = 'ArrowLeft'
+                break
+            case 'ArrowUp':
+                somPulo.play()
+                somPulo.currentTime = 0
+                inimigo.velocidade.y = -20
+                break
+            case 'Shift':
+                inimigo.ataque()
+                somAtaque.play()
+                somAtaque.currentTime = 0
+                break
+        }
+    }
+
     console.log(event.key)
 })
 
